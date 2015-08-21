@@ -9,40 +9,42 @@ import requests
 
 version = 1.0  # Kwicks mapi version
 
+
 class KwickError(Exception):
 
     def __init__(self, msg):
         self.msg = msg['errorMsg']
-    
+
     def __str__(self):
         return repr(self.msg)
+
 
 class Kwick(object):
 
     session = None
     cookie = None
-    
+
     host = 'http://mapi.kwick.de/{version}'.format(version=version)
     response = None
-    
+
     def __init__(self, session=None):
         if not session:
             self.session = requests.Session()
-    
+
     def post(self, url, data, json=True):
         response = self.session.post(self.host + url, data)
         self.response = response
         if json:
             return response.json()
         return response.content
-    
+
     def get(self, url, params=dict(), json=True):
         response = self.session.get(self.host + url, params=params)
         self.response = response
         if json:
             return response.json()
         return response.content
-    
+
     def kwick_login(self, kwick_username, kwick_password):
         """
         Wenn erfolgreich:
@@ -62,14 +64,14 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
-    
+
     def kwick_logout(self):
         """
         Von kwick ausloggen
         """
         url = '/logout'
         return self.get(url)
-    
+
     # User-Service
     def kwick_index(self, page):
         """
@@ -80,17 +82,30 @@ class Kwick(object):
             page=page
         )
         return self.get(url, params=params)
-        
+
+    def kwick_setstatus(self, statustext=None):
+        url = '/index/setStatus'
+
+        data = dict(
+            statusText=statustext,
+        )
+
+        json = self.post(url, data=data)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+
     def kwick_infobox(self):
         url = '/infobox'
         return self.get(url)
-    
+
     def kwick_user(self, username, page=0):
         url = '/{username}'.format(
             username=username
         )
         return self.get(url)
-    
+
     # Feed Service
     def kwick_feed(self, feedid, delete=False):
         """
@@ -103,7 +118,7 @@ class Kwick(object):
         else:
             url = '/feed/{feedid}'.format(feedid=feedid)
         return self.get(url)
-    
+
     # Message Service
     def kwick_message(self, page=0, folder=None, sender=None, channel=0, delete=False, show=False):
         """
@@ -127,14 +142,14 @@ class Kwick(object):
             url = '/message/{page}/'.format(page=page)
             if page and folder:
                 url = '/message/{page}/{folder}'.format(page=page, folder=folder)
-                
+
         json = self.get(url)
-        
+
         if 'errorMsg' in json:
             raise KwickError(json)
         else:
             return json
-    
+
     def kwick_message_send(self, receiver, msgtext):
         url = '/message/send'
         data = dict(
@@ -146,7 +161,7 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
-    
+
     def kwick_message_reply(self, receiver, channel, msgtext):
         url = '/message/sendReply'
         data = dict(
@@ -154,7 +169,7 @@ class Kwick(object):
             channel=channel,
             msgText=msgtext,
         )
-        
+
         json = self.post(url, data)
         if 'errorMsg' in json:
             raise KwickError(json)
@@ -171,7 +186,7 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
-    
+
     def kwick_email_delete(self, folder, mailid):
         url = '/email/delete/{folder}/{mailid}'.format(
             folder=folder,
@@ -193,8 +208,8 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
-            
-    def kwick_email_send(self, receiver, subject, content, 
+
+    def kwick_email_send(self, receiver, subject, content,
                          folder=None, replymessage=None, forwardmessage=None):
         url = '/email/send'
         data = dict(
@@ -205,17 +220,32 @@ class Kwick(object):
             replyMsg=replymessage,
             forwardMsg=forwardmessage
         )
-        
+
         json = self.post(url, data=data)
         if 'errorMsg' in json:
             raise KwickError(json)
         else:
             return json
-    
+
     def kwick_email_contactsel(self, group=None, page=0):
         url = '/email/write/contactsel/{group}/{page}'.format(
             group=group,
             page=page
         )
+
+        return self.get(url)
+
+    def kwick_friends(self, page=0, group=None, showoffline=0):
+        url = '/friends'
+        params = dict(
+            page=page,
+            group=group,
+            showOffline=showoffline
+        )
+        return self.get(url, params=params)
         
+    def kwick_friendrequests(self, page=0):
+        url = '/friends/requests/{page}'.format(
+            page=page
+        )
         return self.get(url)
