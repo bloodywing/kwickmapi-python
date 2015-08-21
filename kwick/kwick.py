@@ -249,3 +249,23 @@ class Kwick(object):
             page=page
         )
         return self.get(url)
+        
+    def kwick_friendrequest(self, username, action, reason=None):
+        """
+        :parameter action accept|reject|create|withdraw
+        """
+        url = '/{username}/friendrequest/{action}'.format(
+            username=username,
+            action=action
+        )
+        
+        if action == 'create':
+            data = dict(reason=reason)
+            json = self.post(url, data=data)
+        else:
+            json = self.get(url)
+        
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
