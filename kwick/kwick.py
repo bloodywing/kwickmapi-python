@@ -86,9 +86,9 @@ class Kwick(object):
         return self.get(url)
     
     def kwick_user(self, username, page=0):
-        url = '/{username}'.format(dict(
-            username=username,
-        ))
+        url = '/{username}'.format(
+            username=username
+        )
         return self.get(url)
     
     # Feed Service
@@ -160,3 +160,62 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
+
+    def kwick_email(self, folder=None, page=0, delete=False):
+        url = '/email/{page}/{folder}'.format(
+            folder=folder,
+            page=page
+        )
+        json = self.get(url)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+    
+    def kwick_email_delete(self, folder, mailid):
+        url = '/email/delete/{folder}/{mailid}'.format(
+            folder=folder,
+            mailid=mailid
+        )
+        json = self.get(url)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+
+    def kwick_email_show(self, folder, mailid):
+        url = '/email/show/{folder}/{mailid}'.format(
+            folder=folder,
+            mailid=mailid
+        )
+        json = self.get(url)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+            
+    def kwick_email_send(self, receiver, subject, content, 
+                         folder=None, replymessage=None, forwardmessage=None):
+        url = '/email/send'
+        data = dict(
+            receiver=receiver,
+            subject=subject,
+            content=content,
+            folder=folder,
+            replyMsg=replymessage,
+            forwardMsg=forwardmessage
+        )
+        
+        json = self.post(url, data=data)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+    
+    def kwick_email_contactsel(self, group=None, page=0):
+        url = '/email/write/contactsel/{group}/{page}'.format(
+            group=group,
+            page=page
+        )
+        
+        return self.get(url)
