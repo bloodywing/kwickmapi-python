@@ -5,9 +5,7 @@ Created on Fri Aug 21 17:50:30 2015
 @author: Tilra
 """
 
-import hashlib
 import requests
-import random
 
 version = 1.0  # Kwicks mapi version
 
@@ -93,3 +91,59 @@ class Kwick(object):
         else:
             url = '/feed/{feedid}'.format(feedid=feedid)
         return self.get(url)
+        
+    def kwick_message(self, page=0, folder=None, sender=None, channel=0, delete=False, show=False):
+        """
+        folder: recv, sent, parked, spam
+        default: recv
+        """
+        if delete:
+            url = '/message/delete/{folder}/{sender}/{channel}'.format(
+                folder=folder,
+                sender=sender,
+                channel=channel
+            )
+        if show:
+            url = '/message/show/{folder}/{page}/{sender}/{channel}'.format(
+                folder=folder,
+                page=page,
+                sender=sender,
+                channel=channel
+            )
+        else:
+            url = '/message/{page}/'.format(page=page)
+            if page and folder:
+                url = '/message/{page}/{folder}'.format(page=page, folder=folder)
+                
+        json = self.get(url)
+        
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+    
+    def kwick_message_send(self, receiver, msgtext):
+        url = '/message/send'
+        data = dict(
+            receiver=receiver,
+            msgText=msgtext,
+        )
+        json = self.post(url, data)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+    
+    def kwick_message_reply(self, receiver, channel, msgtext):
+        url = '/message/sendReply'
+        data = dict(
+            receiver=receiver,
+            channel=channel,
+            msgText=msgtext,
+        )
+        
+        json = self.post(url, data)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
