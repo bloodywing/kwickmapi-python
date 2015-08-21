@@ -70,6 +70,7 @@ class Kwick(object):
         url = '/logout'
         return self.get(url)
     
+    # User-Service
     def kwick_index(self, page):
         """
         docs: http://developer.kwick.com/index.php/User/index
@@ -79,7 +80,18 @@ class Kwick(object):
             page=page
         )
         return self.get(url, params=params)
+        
+    def kwick_infobox(self):
+        url = '/infobox'
+        return self.get(url)
     
+    def kwick_user(self, username, page=0):
+        url = '/{username}'.format(dict(
+            username=username,
+        ))
+        return self.get(url)
+    
+    # Feed Service
     def kwick_feed(self, feedid, delete=False):
         """
         docs: http://developer.kwick.com/index.php/Feed/feed
@@ -91,7 +103,8 @@ class Kwick(object):
         else:
             url = '/feed/{feedid}'.format(feedid=feedid)
         return self.get(url)
-        
+    
+    # Message Service
     def kwick_message(self, page=0, folder=None, sender=None, channel=0, delete=False, show=False):
         """
         folder: recv, sent, parked, spam
