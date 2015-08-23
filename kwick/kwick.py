@@ -156,7 +156,6 @@ class Kwick(object):
             url = '/message/{page}/'.format(page=page)
             if folder:
                 url = '/message/{page}/{folder}'.format(page=page, folder=folder)
-                print(url)
 
         json = self.get(url)
 
