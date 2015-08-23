@@ -145,7 +145,7 @@ class Kwick(object):
                 sender=sender,
                 channel=channel
             )
-        if show:
+        elif show:
             url = '/message/show/{folder}/{page}/{sender}/{channel}'.format(
                 folder=folder,
                 page=page,
