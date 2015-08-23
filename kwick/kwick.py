@@ -2,6 +2,20 @@
 """
 Created on Fri Aug 21 17:50:30 2015
 
+Copyright (C) 2015  Tilra
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+
 @author: Tilra
 """
 
@@ -140,8 +154,9 @@ class Kwick(object):
             )
         else:
             url = '/message/{page}/'.format(page=page)
-            if page and folder:
+            if folder:
                 url = '/message/{page}/{folder}'.format(page=page, folder=folder)
+                print(url)
 
         json = self.get(url)
 
@@ -243,13 +258,13 @@ class Kwick(object):
             showOffline=showoffline
         )
         return self.get(url, params=params)
-        
+
     def kwick_friendrequests(self, page=0):
         url = '/friends/requests/{page}'.format(
             page=page
         )
         return self.get(url)
-        
+
     def kwick_friendrequest(self, username, action, reason=None):
         """
         :parameter action accept|reject|create|withdraw
@@ -258,13 +273,13 @@ class Kwick(object):
             username=username,
             action=action
         )
-        
+
         if action == 'create':
             data = dict(reason=reason)
             json = self.post(url, data=data)
         else:
             json = self.get(url)
-        
+
         if 'errorMsg' in json:
             raise KwickError(json)
         else:
