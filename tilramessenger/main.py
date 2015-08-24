@@ -134,6 +134,13 @@ class Messenger(GObject.GObject):
     def inputfinished(self, textbuffer):
         pass
 
+    def b_sendchat_clicked(self, *args):
+        self.sendmessage()
+        text_buffer = builder.get_object('chatinputbuffer')
+        text_buffer.delete(text_buffer.get_start_iter(), text_buffer.get_end_iter())
+        self.fill_chat_textbuffer()
+        return True
+
     def chatinput_key_pressed(self, widget, event):
         mods = Gtk.accelerator_get_default_mod_mask()
         if event.keyval == 65293 and event.get_state() & mods != Gdk.ModifierType.SHIFT_MASK:
@@ -273,6 +280,7 @@ handlers = {
     #'on_sender_selection_changed': messenger.show_message,
     'on_chatwindow_delete_event': messenger.hide_chatwindow,
     'on_sendchat_activate': messenger.sendmessage,
+    'on_b_sendchat_clicked': messenger.b_sendchat_clicked,
     'on_chatinputbuffer_end_user_action': messenger.inputfinished,
     'on_chatinput_key_press_event': messenger.chatinput_key_pressed,
     'on_tree_sender_button_release_event': messenger.tree_sender_key_pressed,
