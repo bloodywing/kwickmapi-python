@@ -300,10 +300,9 @@ Author: Tilra
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
                 <property name="model">sender_store</property>
+                <property name="headers_visible">False</property>
+                <property name="headers_clickable">False</property>
                 <property name="search_column">0</property>
-                <property name="enable_grid_lines">both</property>
-                <property name="enable_tree_lines">True</property>
-                <property name="activate_on_single_click">True</property>
                 <signal name="button-release-event" handler="on_tree_sender_button_release_event" swapped="no"/>
                 <child internal-child="selection">
                   <object class="GtkTreeSelection" id="sender_selection"/>
@@ -467,11 +466,6 @@ Author: Tilra
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkScrolledWindow" id="scrolledwindow3">
-    <property name="visible">True</property>
-    <property name="can_focus">True</property>
-    <property name="shadow_type">in</property>
   </object>
   <object class="GtkTextTagTable" id="texttagtable1">
     <child type="tag">

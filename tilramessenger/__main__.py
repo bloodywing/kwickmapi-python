@@ -22,3 +22,6 @@ You should have received a copy of the GNU General Public License
 
 def run_main():
     from . import main
+
+if __name__ == '__main__':
+    run_main()

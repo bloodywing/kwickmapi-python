@@ -20,9 +20,8 @@ You should have received a copy of the GNU General Public License
 """
 
 from kwick import Kwick
-from pprint import pprint
 import os
-import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from gi.repository import Gtk, GObject, Gdk, GLib
 from .configuration import Configuration
@@ -40,8 +39,7 @@ def get_builder():
     builder.connect_signals(handlers)
     return builder
 
-
-class Messenger(object):
+class Messenger(GObject.GObject):
     users = []
     msgs = []
     msg = None
@@ -50,6 +48,17 @@ class Messenger(object):
     channel = 0
     t = None
     old_msg = None
+    sender_store = None
+
+    is_loading_messages = GObject.property(type=bool, default=False)
+
+    __gsignals__ = {
+        'messages_loaded': (GObject.SIGNAL_RUN_FIRST, None, (bool,))
+    }
+
+    def __init__(self):
+        super(Messenger, self).__init__()
+        self.t = ThreadPoolExecutor(max_workers=1)
 
     def show_login(self, arg):
         d_user = builder.get_object('d_user')
@@ -75,67 +84,40 @@ class Messenger(object):
         self.close_login()
 
     def on_mainwindow_show(self, *arg):
+        self.connect("messages_loaded", self.on_messages_loaded)
+        self.sender_store = builder.get_object('sender_store')
         statusbar = builder.get_object('statusbar_mw')
         if len(config['user/username']) and len(config['user/password']):
             results = kwick.kwick_login(config['user/username'], config['user/password'])
             self.userid = results['userid']  # We need this for later use
             if results['loggedIn']:
                 statusbar.push(0, 'Anmeldung erfolgreich als {username}'.format(username=config['user/username']))
-                self.load_senders()
+                self.update_messages(True)
 
         GObject.timeout_add_seconds(5, self.update_messages)
 
     def update_messages(self, force_reload=False):
-        self.t = threading.Thread(target=self.load_senders, kwargs={'force_reload': force_reload})
-        self.t.start()
-        self.t.join()
+        self.job = self.t.submit(self.load_senders, force_reload=force_reload)
+        self.job.add_done_callback(self.update_messages_finished)
         return True
 
+    def update_messages_finished(self, job):
+        results = job.result()
+        if results:
+            self.msgs = results
+            self.emit('messages_loaded', True)
+        return True
+
+    def on_messages_loaded(self, widget, value):
+        GLib.idle_add(widget.fill_treeview)
 
     def fill_treeview(self):
-        tree = builder.get_object('tree_sender')
-        store = builder.get_object('sender_store')
-        store.clear()
+        self.sender_store.clear()
         for msg in self.msgs:
-            userrow = store.append(None, (msg['user']['username'], msg['channel'],))
+            self.sender_store.append(None, (msg['user']['username'], msg['channel'],))
+            #self.sender_store.append(None, ('Dummy', 0,))
             #store.append(userrow, (str(msg['channel']),))
-
-    def load_senders(self, *args, force_reload=False):
-        message_blob_recv = kwick.kwick_message(folder='recv')
-        if not force_reload:
-            try:
-                newest_message = message_blob_recv['messages']['msgs'][0]
-                if newest_message['conversation']['lastMessage'] == self.msgs[0]['conversation']['lastMessage']:
-                    return True
-            except IndexError as e:
-                newest_message = None
-            except KeyError as e:
-                newest_message = None
-        message_blob_sent = kwick.kwick_message(folder='sent')
-        blobs = [message_blob_recv, message_blob_sent]
-        self.msgs = []
-        for blob in blobs:
-            if 'maxPage' in blob:
-                max_page = blob['maxPage']
-            else:
-                max_page = 1
-            folder = blob['selected']
-            for p in range(0, max_page):
-                message_blob = kwick.kwick_message(page=p, folder=folder)
-                if 'messages' in message_blob:
-                    for msg in message_blob['messages']['msgs']:
-                        u = msg['user']
-                        user = User()
-                        user.username = u['username']
-                        user.userid = u['userid']
-                        user.age = u['age']
-                        user.is_buddy = u['isBuddy']
-                        user.message_history = msg['history']
-                        self.msgs.append(msg)
-                        if u['userid'] not in self.users:
-                            self.users.append(user)
-        if len(self.msgs):
-            self.fill_treeview()
+        return False
 
     def sendmessage(self, *args):
         text_buffer = builder.get_object('chatinputbuffer')
@@ -179,10 +161,7 @@ class Messenger(object):
     def show_chatwindow(self):
         chat = builder.get_object('chatwindow')
         chat.show_all()
-
-        self.fill_chat_textbuffer()
-
-        GObject.timeout_add(1000, self.fill_chat_textbuffer)
+        GObject.idle_add(self.fill_chat_textbuffer)
 
     def fill_chat_textbuffer(self):
         text = builder.get_object('sendertext')
@@ -199,11 +178,13 @@ class Messenger(object):
             text_buffer.delete(start_iter, end_iter)
             self.msg = None
             return True
+
         try:
             if self.msg['history'][0]['date'] == self.old_msg['date']:
                 return True
         except TypeError as e:
             "Keine neuen Nachrichten"
+            return True
 
         text_buffer.delete(start_iter, end_iter)
         for line in self.msg['history']:
@@ -245,13 +226,39 @@ class Messenger(object):
         channel = model[treeiter][1]
         self.msg = [c for c in self.msgs if c['user']['username'] == username and c['channel'] == channel][0]
         userid = self.msg['msgid']
-        pprint(kwick.kwick_message(folder='recv',
+        kwick.kwick_message(folder='recv',
                                    sender=userid,
                                    channel=channel,
                                    delete=True)
-                                   )
         self.update_messages(force_reload=True)
 
+
+    def load_senders(self, *args, force_reload=False):
+        message_blob_recv = kwick.kwick_message(folder='recv')
+        if not force_reload:
+            try:
+                newest_message = message_blob_recv['messages']['msgs'][0]
+                if newest_message['conversation']['lastMessage'] == self.msgs[0]['conversation']['lastMessage']:
+                    return False
+            except IndexError as e:
+                newest_message = None
+            except KeyError as e:
+                newest_message = None
+        message_blob_sent = kwick.kwick_message(folder='sent')
+        blobs = [message_blob_recv, message_blob_sent]
+        msgs = []
+        for blob in blobs:
+            if 'maxPage' in blob:
+                max_page = blob['maxPage']
+            else:
+                max_page = 1
+            folder = blob['selected']
+            for p in range(0, max_page):
+                message_blob = kwick.kwick_message(page=p, folder=folder)
+                if 'messages' in message_blob:
+                    for msg in message_blob['messages']['msgs']:
+                        msgs.append(msg)
+        return msgs
 
 messenger = Messenger()
 
@@ -273,14 +280,8 @@ handlers = {
     'on_b_sendmsg_activate': messenger.newmessage,
 }
 
-GObject.threads_init()
-GLib.threads_init()
-Gdk.threads_init()
-Gdk.threads_enter()
-
 builder = get_builder()
 window = builder.get_object('mainwindow')
 window.show_all()
 
 Gtk.main()
-Gdk.threads_leave()
