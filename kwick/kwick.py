@@ -283,3 +283,21 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
+
+    def kwick_search_members(self, online=None, age_from=1, age_to=99, distance=0,
+                            single=None, haspic=None, gender=3, limit=100, offset=0):
+        """
+        :parameter gender 0|1|2
+        :parameter limit Anything between 0 and 20
+        Kwick Docs are wrong
+        """
+        url = '/search/members'
+        params = locals()
+        params.pop('self')
+        params.pop('url')
+
+        json = self.get(url, params=params)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
