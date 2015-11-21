@@ -36,14 +36,18 @@ class KwickError(Exception):
 class Kwick(object):
 
     session = None
+    mobile_session = None
     cookie = None
 
     host = 'http://mapi.kwick.de/{version}'.format(version=version)
+    mobile_host = 'http://m.kwick.de'
     response = None
 
-    def __init__(self, session=None):
+    def __init__(self, session=None, mobile_session=None):
         if not session:
             self.session = requests.Session()
+        if not mobile_session:
+            self.mobile_session = requests.Session()
 
     def post(self, url, data, json=True):
         response = self.session.post(self.host + url, data)
@@ -54,6 +58,27 @@ class Kwick(object):
 
     def get(self, url, params=dict(), json=True):
         response = self.session.get(self.host + url, params=params)
+        self.response = response
+        if json:
+            return response.json()
+        return response.content
+
+    def mobile_post(self, url, data, params=dict(), json=True):
+        if json:
+            params['__env'] = 'json'
+        if data:
+            data['jsInfo'] = 'true'
+            data['browserInfo'] = 'requests # Version'
+        response = self.mobile_session.post(self.mobile_host + url, data, params=params)
+        self.response = response
+        if json:
+            return response.json()
+        return response.content
+
+    def mobile_get(self, url, params=dict(), json=True):
+        if json:
+            params['__env'] = 'json'
+        response = self.mobile_session.get(self.mobile_host + url, params=params)
         self.response = response
         if json:
             return response.json()
@@ -73,7 +98,21 @@ class Kwick(object):
             kwick_username=kwick_username,
             kwick_password=kwick_password
         )
+        self.kwick_mobilelogin(kwick_username, kwick_password)
         json = self.post(url, data)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+
+    def kwick_mobilelogin(self, kwick_username, kwick_password):
+
+        url = '/login'
+        data = dict(
+            kwick_username=kwick_username,
+            kwick_password=kwick_password
+        )
+        json = self.mobile_post(url, data)
         if 'errorMsg' in json:
             raise KwickError(json)
         else:
@@ -275,7 +314,7 @@ class Kwick(object):
 
         if action == 'create':
             data = dict(reason=reason)
-            json = self.post(url, data=data)
+            json = self.mobile_post(url, data=data)
         else:
             json = self.get(url)
 
