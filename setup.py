@@ -27,8 +27,6 @@ setup(
     version=kwick.__version__,
     description='A python library for kwick.de based on their mapi',
     packages=packages,
-    package_data=package_data,
-    entry_points=entry_points,
     install_requires=requires,
     author=kwick.__author__,
     author_email='bloodywing@tastyespresso.de',

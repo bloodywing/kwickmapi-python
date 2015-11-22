@@ -126,15 +126,17 @@ class Kwick(object):
         return self.get(url)
 
     # User-Service
-    def kwick_index(self, page):
+    def kwick_index(self, page, community=False):
         """
         docs: http://developer.kwick.com/index.php/User/index
         """
         url = '/index'
+        if community:
+            url = '/index/community/'
         params = dict(
             page=page
         )
-        return self.get(url, params=params)
+        return self.mobile_get(url, params=params)
 
     def kwick_setstatus(self, statustext=None):
         url = '/index/setStatus'
@@ -157,7 +159,7 @@ class Kwick(object):
         url = '/{username}'.format(
             username=username
         )
-        return self.get(url)
+        return self.mobile_get(url)
 
     # Feed Service
     def kwick_feed(self, feedid, delete=False):
@@ -322,6 +324,41 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
+
+    def kwick_comment_create(self, type, id, text):
+        """
+        :parameter type Microblog|Profile_Photos_Photo|Profile_Blog_Entry|Profile_Change_Registration
+        :parameter id userid___objectid Use the kwick_index() function for examples
+        """
+
+        url = '/socialobject/{type}/{id}/comment/create'.format(
+            type=type,
+            id=id,
+        )
+        data = dict(
+            text=text
+        )
+        return self.post(url, data=data)
+
+    def kwick_comment_delete(self, type, id, commentid):
+        url = '/socialobject/{type}/{id}/comment/{commentid}/delete'.format(
+            type=type,
+            id=id,
+            commentid=commentid
+        )
+
+        return self.get(url)
+
+    def kwick_like(self, type, id, dolike=1):
+        """
+        :parameter dolike 1|0 Removes like if 0
+        """
+        url = '/socialobject/{type}/{id}/like/{dolike}'.format(
+            type=type,
+            id=id,
+            dolike=dolike
+        )
+        return self.get(url)
 
     def kwick_search_members(self, online=None, age_from=1, age_to=99, distance=0,
                             single=None, haspic=None, gender=3, limit=100, offset=0):
