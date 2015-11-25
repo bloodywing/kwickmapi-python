@@ -123,7 +123,12 @@ class Kwick(object):
         Von kwick ausloggen
         """
         url = '/logout'
-        return self.get(url)
+        json = self.get(url)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     # User-Service
     def kwick_index(self, page, community=False):
@@ -288,7 +293,12 @@ class Kwick(object):
             page=page
         )
 
-        return self.get(url)
+        json = self.get(url)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     def kwick_friends(self, page=0, group=None, showoffline=0):
         url = '/friends'
@@ -297,13 +307,23 @@ class Kwick(object):
             group=group,
             showOffline=showoffline
         )
-        return self.get(url, params=params)
+        json = self.get(url, params=params)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     def kwick_friendrequests(self, page=0):
         url = '/friends/requests/{page}'.format(
             page=page
         )
-        return self.get(url)
+        json = self.get(url)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     def kwick_friendrequest(self, username, action, reason=None):
         """
@@ -338,7 +358,27 @@ class Kwick(object):
         data = dict(
             text=text
         )
-        return self.post(url, data=data)
+        json = self.post(url, data=data)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+
+    def kwick_comments(self, type, id, limit=100, offset=0):
+        url = '/socialobject/{type}/{id}/comment/find/{limit}/{offset}'.format(
+            type=type,
+            id=id,
+            limit=limit,
+            offset=offset,
+        )
+
+        json = self.get(url)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     def kwick_comment_delete(self, type, id, commentid):
         url = '/socialobject/{type}/{id}/comment/{commentid}/delete'.format(
@@ -347,7 +387,12 @@ class Kwick(object):
             commentid=commentid
         )
 
-        return self.get(url)
+        json = self.get(url)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     def kwick_like(self, type, id, dolike=1):
         """
@@ -358,7 +403,12 @@ class Kwick(object):
             id=id,
             dolike=dolike
         )
-        return self.get(url)
+        json = self.get(url)
+
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
 
     def kwick_search_members(self, online=None, age_from=1, age_to=99, distance=0,
                             single=None, haspic=None, gender=3, limit=100, offset=0):
