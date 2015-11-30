@@ -28,6 +28,7 @@ setup(
     description='A python library for kwick.de based on their mapi',
     packages=packages,
     install_requires=requires,
+    test_suite = 'nose.collector',
     author=kwick.__author__,
     author_email='bloodywing@tastyespresso.de',
     license='GPL 3.0',
