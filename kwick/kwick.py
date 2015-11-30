@@ -438,3 +438,32 @@ class Kwick(object):
             raise KwickError(json)
         else:
             return json
+
+    def kwick_fan_add(self, username):
+        """
+        :parameter username Any username
+        Some people have become a fan disabled
+        """
+        url = '/{username}/fan/add'.format(
+            username=username
+        )
+
+        json = self.get(url)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
+
+    def kwick_fan_remove(self, username):
+        """
+        :parameter username Any username
+        """
+        url = '/{username}/fan/remove'.format(
+            username=username
+        )
+
+        json = self.get(url)
+        if 'errorMsg' in json:
+            raise KwickError(json)
+        else:
+            return json
