@@ -131,7 +131,7 @@ class Kwick(object):
             return json
 
     # User-Service
-    def kwick_index(self, page, community=False):
+    def kwick_index(self, page, community=False, json=True):
         """
         docs: http://developer.kwick.com/index.php/User/index
         """
@@ -141,7 +141,7 @@ class Kwick(object):
         params = dict(
             page=page
         )
-        return self.mobile_get(url, params=params)
+        return self.mobile_get(url, params=params, json=json)
 
     def kwick_setstatus(self, statustext=None):
         url = '/index/setStatus'
@@ -160,11 +160,11 @@ class Kwick(object):
         url = '/infobox'
         return self.get(url)
 
-    def kwick_user(self, username, page=0):
+    def kwick_user(self, username, page=0, json=True):
         url = '/{username}'.format(
             username=username
         )
-        return self.mobile_get(url)
+        return self.mobile_get(url, json=json)
 
     # Feed Service
     def kwick_feed(self, feedid, delete=False):
