@@ -64,6 +64,5 @@ class testKwick(unittest.TestCase):
         resp = self.kwick.kwick_setstatus(statustext=msg)
         for s in self.kwick.kwick_index(page=0)['socialstream']:
             if s['body'] == msg:
-                _, blogid = s['socialObjectId'].split('___')
                 resp = self.kwick.kwick_socialobject_delete('Microblog', s['socialObjectId'])
                 assert 'error' in resp and resp['error'] is False

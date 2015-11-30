@@ -1,14 +1,22 @@
 language: python
 python:
-  - "2.7"
-  - "3.3"
-  - "3.4"
+- '2.7'
+- '3.3'
+- '3.4'
 install:
-  - pip install -r requirements.txt
-  - pip install coveralls
-  - pip install .
+- pip install -r requirements.txt
+- pip install coveralls
+- pip install .
 script:
-  - nosetests
-  - coverage run --source=kwick setup.py nosetests
+- nosetests
+- coverage run --source=kwick setup.py nosetests
 after_success:
-  - coveralls
+- coveralls
+deploy:
+  provider: pypi
+  user: bloodywing
+  password:
+    secure: dflN2u/5mo6KXCg3Q2t6Rq0hb585yZ6zDCI/QeI30RCbvwZCS4OvO8MKC1wZgxu5kxd3VL5ZqhoS8ShR6j12s5chN+kbM4arVc9sqzsAbHSWPEasHWYi/dYOTVaFWB/BKIkzfLys/JTnESx1o8mOJ4tkaJMx6KzAxkNjpUHqewhrg6m7N5zNKTU0SgmBm2MNGzrK417m/MjTxguE3PhPbFZZWHOqxszycemggqGKJQLpQqNyscFjE30yshGP4JF6qUH8boshXXtnJ/27z0rsCeadQMTMFQ61uiUWHWGoYARKIyybn5bmNHBv+R9iimQO6pAZRpYvLjykH3BUXto08DugWIevcsfpCjgG2m8i/54LRkuVqlnjXVfUI8PAevmAyf43/IfV4+vYfryZ2RsChq3eaDPI262Cn9Thmb5x6RWq6sWRjuudxl1nBJLYGTx39GidEh6F3bVVV3MOvbKMFAgJz80TngTQ8M7y3MlZWaDnUYlyHQBT1v0FwFwPvnNfp3r6+z2gnw2SrqxHd27prULpMG5fOgoXo1ZXpD8mHSlAwUYChe+GcUa6zbqa2Y+yL27KBFm1qf1LhCoxR3FwvTWKbs1tNNeuabEjST3yU8ohglxIZch7SoLj1GrAehS1Uu+JJN3RQYqDvj5Fi/dPEVxKrfNFOPCmXmQlWlpe3So=
+  on:
+    tags: true
+    branch: master
