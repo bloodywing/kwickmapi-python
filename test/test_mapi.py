@@ -1,7 +1,7 @@
 import os
 import unittest
 from nose.tools import raises
-from kwick import Kwick, KwickError
+from kwick import Kwick, KwickError, __version__
 
 user = os.environ['kwick_user'] or 'test'
 password = os.environ['kwick_password'] or 'changeme'
@@ -58,3 +58,12 @@ class testKwick(unittest.TestCase):
                                                distance=100,
                                                haspic=1)
         assert 'users' in resp
+
+    def test_status(self):
+        msg = 'kwickmapi-python Version: {0}'.format(__version__)
+        resp = self.kwick.kwick_setstatus(statustext=msg)
+        for s in self.kwick.kwick_index(page=0)['socialstream']:
+            if s['body'] == msg:
+                _, blogid = s['socialObjectId'].split('___')
+                resp = self.kwick.kwick_socialobject_delete('Microblog', s['socialObjectId'])
+                assert 'error' in resp and resp['error'] is False

@@ -156,6 +156,16 @@ class Kwick(object):
         else:
             return json
 
+    def kwick_socialobject_delete(self, type, id):
+        """
+        This is not in the docs
+        """
+        url = '/socialobject/{type}/{id}/delete'.format(
+            type=type,
+            id=id
+        )
+        return self.mobile_get(url)
+
     def kwick_infobox(self):
         url = '/infobox'
         return self.get(url)
@@ -171,7 +181,8 @@ class Kwick(object):
         """
         docs: http://developer.kwick.com/index.php/Feed/feed
         docs: http://developer.kwick.com/index.php/Feed/feed/feedid/delete
-        warning: veraltet
+        warning: doesn't work at all
+        Kwick has replaced this with socialobjects
         """
         if delete:
             url = '/feed/{feedid}/delete'.format(feedid=feedid)
