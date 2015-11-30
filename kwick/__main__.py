@@ -2,7 +2,7 @@
 """
 Created on Fri Aug 21 18:37:36 2015
 
-@author: Tilra
+@author: bloodywing
 """
 
 from .kwick import Kwick
