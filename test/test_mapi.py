@@ -98,7 +98,8 @@ class testKwick(unittest.TestCase):
     @patch.object(Kwick, 'request')
     def test_like(self, mock):
         self.kwick.kwick_like('Microblog', '123456___123456', 1)
-        mock.assert_called_with('/socialobject/Microblog/123456___123456/like/1')
+        mock.assert_called_with(
+            '/socialobject/Microblog/123456___123456/like/1')
 
     @patch.object(Kwick, 'request')
     def test_friendrequest(self, mock):
@@ -118,7 +119,8 @@ class testKwick(unittest.TestCase):
     @patch.object(Kwick, 'request')
     def test_delete_socialobject(self, mock):
         self.kwick.kwick_socialobject_delete('Microblog', '123456___123456')
-        mock.assert_called_with('/socialobject/Microblog/123456___123456/delete', mobile=True)
+        mock.assert_called_with(
+            '/socialobject/Microblog/123456___123456/delete', mobile=True)
 
     @patch.object(Kwick, 'request')
     def test_message_send(self, mock):
@@ -131,3 +133,66 @@ class testKwick(unittest.TestCase):
         self.kwick.kwick_message_reply(user, 0, msg)
         mock.assert_called_with(
             '/message/sendReply', {'receiver': user, 'channel': 0, 'msgText': msg})
+
+    @patch.object(Kwick, 'request')
+    def test_message_list(self, mock):
+        self.kwick.kwick_message(page=0, folder='recv')
+        mock.assert_called_with('/message/0/recv')
+
+    @patch.object(Kwick, 'request')
+    def test_message_show(self, mock):
+        self.kwick.kwick_message(
+            show=True, page=0, folder='recv', sender=user, channel=0)
+        mock.assert_called_with('/message/show/recv/0/{0}/0'.format(user))
+
+    @patch.object(Kwick, 'request')
+    def test_message_delete(self, mock):
+        self.kwick.kwick_message(
+            delete=True, sender=123456, channel=0, folder='recv')
+        mock.assert_called_with('/message/delete/recv/{0}/0'.format(123456))
+
+    @patch.object(Kwick, 'request')
+    def test_comment_create(self, mock):
+        self.kwick.kwick_comment_create('Microblog', '123456___123456', msg)
+        mock.assert_called_with(
+            '/socialobject/Microblog/123456___123456/comment/create', data={'text': msg})
+
+    @patch.object(Kwick, 'request')
+    def test_comments(self, mock):
+        self.kwick.kwick_comments(
+            'Microblog', '123456___123456', limit=100, offset=0)
+        mock.assert_called_with(
+            '/socialobject/Microblog/123456___123456/comment/find/100/0')
+
+    @patch.object(Kwick, 'request')
+    def test_comment_delete(self, mock):
+        self.kwick.kwick_comment_delete(
+            'Microblog', '123456___123456', '7778_7778')
+        mock.assert_called_with(
+            '/socialobject/Microblog/123456___123456/comment/7778_7778/delete')
+
+    @patch.object(Kwick, 'request')
+    def test_email(self, mock):
+        self.kwick.kwick_email(folder='recv', page=0)
+        mock.assert_called_with('/email/0/recv')
+
+    @patch.object(Kwick, 'request')
+    def test_email_delete(self, mock):
+        self.kwick.kwick_email_delete(folder='recv', mailid=123456)
+        mock.assert_called_with('/email/delete/recv/123456')
+
+    @patch.object(Kwick, 'request')
+    def test_email_show(self, mock):
+        self.kwick.kwick_email_show(folder='recv', mailid=123456)
+        mock.assert_called_with('/email/show/recv/123456')
+
+    @patch.object(Kwick, 'request')
+    def test_email_contactsel(self, mock):
+        self.kwick.kwick_email_contactsel(group='buddies', page=0)
+        mock.assert_called_with('/email/write/contactsel/buddies/0')
+
+    @patch.object(Kwick, 'request')
+    def test_email_send(self, mock):
+        self.kwick.kwick_email_send(receiver=user, subject='test', content=msg)
+        mock.assert_called_with('/email/send', data={'replyMsg': None, 'forwardMsg': None,
+                                                     'content': msg, 'receiver': user, 'folder': None, 'subject': 'test'})
