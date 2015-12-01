@@ -1,5 +1,9 @@
 import os
 import unittest
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 from nose.tools import raises
 from kwick import Kwick, KwickError, __version__
 
@@ -11,6 +15,7 @@ class testKwick(unittest.TestCase):
     @classmethod
     def setup_class(cls):
         cls.kwick = Kwick()
+        cls.kwick_mock = Mock(spec=cls.kwick)
         resp = cls.kwick.kwick_login(user, password)
         assert 'session_name' in resp
 
@@ -25,19 +30,19 @@ class testKwick(unittest.TestCase):
 
     def test_index(self):
         resp = self.kwick.kwick_index(page=0)
-        assert 'socialstream' in resp
+        self.assertTrue('socialstream' in resp)
         resp = self.kwick.kwick_index(page=0, community=True)
-        assert 'community' in resp and resp['community'] is True
+        self.assertTrue('community' in resp and resp['community'] is True)
 
     def test_infobox(self):
         resp = self.kwick.kwick_infobox()
-        assert 'infobox' in resp
-        assert 'ticker' in resp
+        self.assertTrue('infobox' in resp)
+        self.assertTrue('ticker' in resp)
 
     def test_user(self):
         testuser = 'kwick'
         resp = self.kwick.kwick_user(username=testuser)
-        assert 'isFriend' in resp
+        self.assertTrue('isFriend' in resp)
 
     @raises(KwickError)
     def test_user_notavail(self):
@@ -46,7 +51,7 @@ class testKwick(unittest.TestCase):
 
     def test_friends(self):
         resp = self.kwick.kwick_friends()
-        assert 'totalSize' in resp
+        self.assertTrue('totalSize' in resp)
 
     def test_search_members(self):
         resp = self.kwick.kwick_search_members(gender=0)
@@ -58,7 +63,7 @@ class testKwick(unittest.TestCase):
                                                single=1,
                                                distance=100,
                                                haspic=1)
-        assert 'users' in resp
+        self.assertTrue('users' in resp)
 
     def test_status(self):
         msg = 'kwickmapi-python Version: {0}'.format(__version__)
@@ -69,9 +74,9 @@ class testKwick(unittest.TestCase):
                 assert 'error' in resp and resp['error'] is False
 
     def test_fan(self):
-        resp = self.kwick.kwick_fan_add(username='kwick')
-        assert 'textMsg' in resp
+        resp = self.kwick_mock.kwick_fan_add(username='kwick')
+        self.kwick_mock.kwick_fan_add.assert_called_with(username='kwick')
 
     def test_defan(self):
-        resp = self.kwick.kwick_fan_remove(username='kwick')
-        assert 'textMsg' in resp
+        resp = self.kwick_mock.kwick_fan_remove(username='kwick')
+        self.kwick_mock.kwick_fan_remove.assert_called_with(username='kwick')

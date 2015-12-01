@@ -19,8 +19,17 @@ packages = [
 ]
 
 requires = [
-    'requests'
+    'requests',
 ]
+
+test_requires = [
+    'nose'
+]
+
+try:
+    from unittest.mock import Mock
+except ImportError:
+    test_requires.append('mock')
 
 here = os.path.dirname(os.path.abspath(__file__))
 f = open(os.path.join(here, 'README.md'))
@@ -36,6 +45,7 @@ setup(
     packages=packages,
     install_requires=requires,
     requires=requires,
+    tests_require=test_requires,
     test_suite = 'nose.collector',
     author=kwick.__author__,
     author_email='bloodywing@tastyespresso.de',
