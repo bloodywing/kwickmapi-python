@@ -39,9 +39,10 @@ class testKwick(unittest.TestCase):
         resp = self.kwick.kwick_user(username=testuser)
         assert 'isFriend' in resp
 
+    @raises(KwickError)
+    def test_user_notavail(self):
         not_availuser = 'ar5oih435llsv83252jkffSdfs'
-        resp = self.kwick.kwick_user(username=not_availuser)
-        assert 'errorMsg' in resp
+        self.kwick.kwick_user(username=not_availuser)
 
     def test_friends(self):
         resp = self.kwick.kwick_friends()
@@ -66,3 +67,11 @@ class testKwick(unittest.TestCase):
             if s['body'] == msg:
                 resp = self.kwick.kwick_socialobject_delete('Microblog', s['socialObjectId'])
                 assert 'error' in resp and resp['error'] is False
+
+    def test_fan(self):
+        resp = self.kwick.kwick_fan_add(username='kwick')
+        assert 'textMsg' in resp
+
+    def test_defan(self):
+        resp = self.kwick.kwick_fan_remove(username='kwick')
+        assert 'textMsg' in resp
