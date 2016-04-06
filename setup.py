@@ -13,7 +13,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import kwick
 packages = [
     'kwick',
 ]
@@ -38,7 +37,7 @@ f.close()
 
 setup(
     name='kwickmapi-python',
-    version=kwick.__version__,
+    version='1.1.3',
     description='A python library for kwick.de based on their mapi',
     long_description=long_description,
     url='https://github.com/bloodywing/kwickmapi-python',
@@ -47,7 +46,7 @@ setup(
     requires=requires,
     tests_require=test_requires,
     test_suite = 'nose.collector',
-    author=kwick.__author__,
+    author='Bloodywing',
     author_email='bloodywing@tastyespresso.de',
     license='GPL 3.0',
     keywords=['kwick', 'api', 'socialmedia', 'website', 'library']
