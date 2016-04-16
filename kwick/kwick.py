@@ -2,7 +2,7 @@
 """
 Created on Fri Aug 21 17:50:30 2015
 
-Copyright (C) 2015  Bloodywing
+Copyright (C) 2016  Bloodywing
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License
 """
 
 import requests
+from requests.utils import urlparse
 
 version = 1.0  # Kwicks mapi version
 
@@ -37,20 +38,24 @@ class Kwick(object):
 
     session = None
     mobile_session = None
+    superapi_session = None
     cookie = None
 
+    superapi_host = 'http://www.kwick.de'
     host = 'http://mapi.kwick.de/{version}'.format(version=version)
     mobile_host = 'http://m.kwick.de'
     response = None
 
-    def __init__(self, session=None, mobile_session=None):
+    def __init__(self, session=None, mobile_session=None, superapi_session=None):
         if not session:
             self.session = requests.Session()
         if not mobile_session:
             self.mobile_session = requests.Session()
+        if not superapi_session:
+            self.superapi_session = requests.Session()
 
-    def request(self, url, data=None, params=dict(), json=True, mobile=False):
-        if data:
+    def request(self, url, data=None, params=dict(), json=True, mobile=False, quirk=False, post=False):
+        if data or post:
             method = 'POST'
         else:
             method = 'GET'
@@ -64,14 +69,20 @@ class Kwick(object):
         if mobile:
             response = self.mobile_session.request(
                 method=method, url=self.mobile_host + url, data=data, params=params)
+        elif quirk:
+            response = self.superapi_session.request(
+                method=method, url=self.superapi_host + url, data=data, params=params)
         else:
             response = self.session.request(
                 method=method, url=self.host + url, data=data, params=params)
         if json:
-            if 'errorMsg' in response.json():
-                raise KwickError(response.json())
-            else:
-                return response.json()
+            try:
+                if 'errorMsg' in response.json():
+                    raise KwickError(response.json())
+                else:
+                    return response.json()
+            except ValueError:
+                return response.content
         return response.content
 
     def kwick_login(self, kwick_username, kwick_password):
@@ -88,8 +99,10 @@ class Kwick(object):
             kwick_username=kwick_username,
             kwick_password=kwick_password
         )
-        self.request(url, data, mobile=True)
-        return self.request(url, data=data)
+        r = self.request(url, data, mobile=True, quirk=False)
+        if r:
+            self.superapi_session.cookies.set('a2K3j8G1', self.mobile_session.cookies['a2K3j8G1'], domain=urlparse(self.superapi_host).netloc)
+        return self.request(url, data)
 
     def kwick_logout(self):
         """
@@ -219,16 +232,34 @@ class Kwick(object):
         return self.request(url)
 
     def kwick_email_send(self, receiver, subject, content,
-                         folder=None, replymessage=None, forwardmessage=None):
-        url = '/email/send'
+                         folder=None, replymessage=None, forwardmessage=None, mobile=False):
+        url = '/email/send/'
+
+        if mobile:
+            import re
+            response = self.request('/email/create/', mobile=True, json=False, quirk=True, params=dict()).decode('utf-8')
+            token = re.search('_token_=(\w+)', response).group(1)
+
         data = dict(
             receiver=receiver,
             subject=subject,
             content=content,
             folder=folder,
             replyMsg=replymessage,
-            forwardMsg=forwardmessage
+            forwardMsg=forwardmessage,
+            old_answer_forward='',
         )
+
+        if mobile:
+            params=dict(
+                _token_=token
+            )
+            del data['folder']
+            del data['replyMsg']
+            del data['forwardMsg']
+
+        if mobile:
+            return self.request(url, data=data, params=params, mobile=mobile, quirk=True, json=False)
 
         return self.request(url, data=data)
 
@@ -240,14 +271,18 @@ class Kwick(object):
 
         return self.request(url)
 
-    def kwick_friends(self, page=0, group=None, showoffline=0):
+    def kwick_friends(self, page=0, group=None, showoffline=0, quirk=False):
         url = '/friends'
+
+        if quirk:
+            url = '/api%s' % url
+
         params = dict(
             page=page,
             group=group,
             showOffline=showoffline
         )
-        return self.request(url, params=params)
+        return self.request(url, params=params, quirk=quirk)
 
     def kwick_friendrequests(self, page=0):
         url = '/friends/requests/{page}'.format(
