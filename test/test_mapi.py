@@ -66,7 +66,7 @@ class testKwick(unittest.TestCase):
     def test_friends(self, mock):
         resp = self.kwick.kwick_friends()
         mock.assert_called_with(
-            '/friends', params={'page': 0, 'group': None, 'showOffline': 0})
+            '/friends', quirk=False, params={'page': 0, 'group': None, 'showOffline': 0})
 
     def test_search_members(self):
         resp = self.kwick.kwick_search_members(gender=0)
@@ -193,6 +193,7 @@ class testKwick(unittest.TestCase):
 
     @patch.object(Kwick, 'request')
     def test_email_send(self, mock):
-        self.kwick.kwick_email_send(receiver=user, subject='test', content=msg)
-        mock.assert_called_with('/email/send', data={'replyMsg': None, 'forwardMsg': None,
+        self.kwick.kwick_email_send(
+            receiver=user, subject='test', content=msg, )
+        mock.assert_called_with('/email/send', data={'replyMsg': None, 'forwardMsg': None, 'old_answer_forward': '', 'replyMsg': None,
                                                      'content': msg, 'receiver': user, 'folder': None, 'subject': 'test'})

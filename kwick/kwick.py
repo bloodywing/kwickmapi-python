@@ -233,7 +233,7 @@ class Kwick(object):
 
     def kwick_email_send(self, receiver, subject, content,
                          folder=None, replymessage=None, forwardmessage=None, mobile=False):
-        url = '/email/send/'
+        url = '/email/send'
 
         if mobile:
             import re
