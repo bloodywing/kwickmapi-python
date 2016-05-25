@@ -54,7 +54,7 @@ class Kwick(object):
         if not superapi_session:
             self.superapi_session = requests.Session()
 
-    def request(self, url, data=None, params=dict(), json=True, mobile=False, quirk=False, post=False):
+    def request(self, url, data=None, params=dict(), files=None, json=True, mobile=False, quirk=False, post=False):
         if data or post:
             method = 'POST'
         else:
@@ -74,7 +74,7 @@ class Kwick(object):
                 method=method, url=self.superapi_host + url, data=data, params=params)
         else:
             response = self.session.request(
-                method=method, url=self.host + url, data=data, params=params)
+                method=method, url=self.host + url, data=data, params=params, files=files)
         if json:
             try:
                 if 'errorMsg' in response.json():
@@ -378,3 +378,53 @@ class Kwick(object):
             username=username
         )
         return self.request(url)
+
+    def kwick_photos(self, username, page=0):
+        url = '/{username}/photos'.format(
+            username=username
+        )
+        params =dict(page=page)
+        return self.request(url, params=params)
+
+    def kwick_photo_show(self, username, albumid, id, page=0):
+        url = '/{username}/photos/show/{albumid}/{id}/{page}'.format(
+            username=username,
+            albumid=albumid,
+            id=id,
+            page=page
+        )
+        return self.request(url)
+
+    def kwick_photo_comments(self, username, albumid, id, limit=100):
+        url = '/{username}/photos/{albumid}/{id}/comments'.format(
+            username=username,
+            albumid=albumid,
+            id=id
+        )
+
+        params = dict(
+            limit=limit
+        )
+
+        return self.request(url, params=params)
+
+    def kwick_photo_upload(self, albumid, photo, title=None, desc=None, returnShortUrl=None, username='me'):
+        """
+        Kwick docs says this needs a username, but you can use anything you want here
+        """
+        url = '/{username}/photos/upload'.format(
+            username=username
+        )
+
+        data = dict(
+            albumid=albumid,
+            title=title,
+            description=desc,
+            returnShortUrl=returnShortUrl
+        )
+
+        files = dict(
+            photo=photo
+        )
+
+        return self.request(url, data=data, files=files)

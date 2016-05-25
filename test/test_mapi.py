@@ -197,3 +197,41 @@ class testKwick(unittest.TestCase):
             receiver=user, subject='test', content=msg, )
         mock.assert_called_with('/email/send', data={'replyMsg': None, 'forwardMsg': None, 'old_answer_forward': '', 'replyMsg': None,
                                                      'content': msg, 'receiver': user, 'folder': None, 'subject': 'test'})
+
+    @patch.object(Kwick, 'request')
+    def test_photos(self, mock):
+        self.kwick.kwick_photos(user, page=0)
+        mock.assert_called_with('/{username}/photos'.format(username=user), params={'page': 0})
+
+    @patch.object(Kwick, 'request')
+    def test_photo_show(self, mock):
+        self.kwick.kwick_photo_show(user, 0, 1, page='0')
+        mock.assert_called_with('/{username}/photos/show/{albumid}/{id}/{page}'.format(
+            username=user,
+            albumid=0,
+            id=1,
+            page='0'
+        ))
+
+    @patch.object(Kwick, 'request')
+    def test_kwick_photo_comments(self, mock):
+        self.kwick.kwick_photo_comments(user, 0, 1, limit=100)
+        mock.assert_called_with('/{username}/photos/{albumid}/{id}/comments'.format(
+            username=user,
+            albumid=0,
+            id=1
+        ), params=(dict(limit=100)))
+
+    @patch.object(Kwick, 'request')
+    def test_kwick_photo_upload(self, mock):
+        dummy = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'dummy.jpg' )
+        with open(dummy, 'rb') as f:
+            self.kwick.kwick_photo_upload('own', photo=f, title='dummy', desc='Testing the api', returnShortUrl='', username=user)
+            mock.assert_called_with('/{username}/photos/upload'.format(username=user), data=dict(
+                albumid='own',
+                title='dummy',
+                description='Testing the api',
+                returnShortUrl=''
+            ), files=dict(
+                photo=f
+            ))
